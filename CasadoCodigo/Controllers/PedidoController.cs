@@ -45,5 +45,12 @@ namespace CasadoCodigo.Controllers
             var pedido = pedidoRepository.GetPedido();
             return View(pedido);
         }
+
+        [HttpPost]
+        public void UpdateQuantidade([FromBody] ItemPedido itemPedido)
+        {
+            var pedido = itemPedido.Id;
+
+        }
     }
 }
