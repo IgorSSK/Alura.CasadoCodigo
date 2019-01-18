@@ -1,4 +1,6 @@
-﻿using CasadoCodigo.Repositories;
+﻿using CasadoCodigo.Models;
+using CasadoCodigo.Models.ViewModel;
+using CasadoCodigo.Repositories;
 using CasaDoCodigo.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -12,11 +14,13 @@ namespace CasadoCodigo.Controllers
     {
         private readonly IProdutoRepository produtoRepository;
         private readonly IPedidoRepository pedidoRepository;
+        private readonly IItemPedidoRepository itemPedidoRepository;
 
-        public PedidoController(IProdutoRepository produtoRepository, IPedidoRepository pedidoRepository)
+        public PedidoController(IProdutoRepository produtoRepository, IPedidoRepository pedidoRepository, IItemPedidoRepository itemPedidoRepository)
         {
             this.produtoRepository = produtoRepository;
             this.pedidoRepository = pedidoRepository;
+            this.itemPedidoRepository = itemPedidoRepository;
         }
 
         public IActionResult Carrossel()
@@ -26,7 +30,14 @@ namespace CasadoCodigo.Controllers
 
         public IActionResult Cadastro()
         {
-            return View();
+            var pedido = pedidoRepository.GetPedido();
+
+            if (pedido == null)
+            {
+                return RedirectToAction("Carrossel");
+            }
+
+            return View(pedido.Cadastro);
         }
 
         public IActionResult Carrinho(string codigo)
@@ -36,21 +47,22 @@ namespace CasadoCodigo.Controllers
                 pedidoRepository.AddItem(codigo);
             }
 
-            Pedido pedido = pedidoRepository.GetPedido();
-            return View(pedido.Itens);
+            List<ItemPedido> pedido = pedidoRepository.GetPedido().Itens;
+            CarrinhoViewModel carrinhoViewModel = new CarrinhoViewModel(pedido);
+            return View(carrinhoViewModel);
         }
 
-        public IActionResult Resumo()
+        [HttpPost]
+        public IActionResult Resumo(Cadastro cadastro)
         {
             var pedido = pedidoRepository.GetPedido();
             return View(pedido);
         }
 
         [HttpPost]
-        public void UpdateQuantidade([FromBody] ItemPedido itemPedido)
+        public UpdateQuantidadeResponse UpdateQuantidade([FromBody] ItemPedido itemPedido)
         {
-            var pedido = itemPedido.Id;
-
+            return pedidoRepository.UpdateQuantidade(itemPedido);
         }
     }
 }

@@ -2,11 +2,29 @@
 @{
     ViewData["Title"] = "Carrinho";
 }
-@model CarrinhoViewModel;
+@model List<ItemPedido>;
 
 @section Scripts{
-     <script src="~/js/Carrinho.js">
-        
+    <script type="text/javascript">
+        function clickIncremento(btn) {
+            var linhaItem = $(btn).parents('[item-id]');
+            var itemId = $(linhaItem).attr('item-id');
+            var novaQtde = $(linhaItem).find('input').val();
+
+            var data = {
+                Id: itemId,
+                Quantidade: novaQtde
+            };
+
+            $.ajax({
+                url: 'pedido/updatequantidade',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data)
+            });
+
+            debugger;
+        }
     </script>
 }
 
@@ -31,7 +49,7 @@
         </div>
     </div>
     <div class="panel-body">
-        @foreach (var item in Model.Item)
+        @foreach (var item in Model)
         {
 
             <div class="row row-center linha-produto" item-id="@(item.Id)">
@@ -43,14 +61,14 @@
                 <div class="col-md-2 text-center">
                     <div class="input-group">
                         <span class="input-group-btn">
-                            <button class="btn btn-default" onclick="carrinho.clickDecremento(this)">
+                            <button class="btn btn-default">
                                 <span class="glyphicon-minus"></span>
                             </button>
                         </span>
                         <input type="text" value="@(item.Quantidade)"
-                               class="form-control text-center" onblur="carrinho.updateQuantidade(this)"/>
+                               class="form-control text-center" />
                         <span class="input-group-btn">
-                            <button class="btn btn-default" onclick="carrinho.clickIncremento(this)">
+                            <button class="btn btn-default" onclick="clickIncremento(this)">
                                 <span class="glyphicon-plus"></span>
                             </button>
                         </span>
@@ -69,13 +87,13 @@
         <div class="row">
             <div class="col-md-10">
                 <span numero-itens>
-                    Total: @(Model.Item.Count())
+                    Total: @(Model.Count())
                     itens
                 </span>
             </div>
             <div class="col-md-2">
                 Total: R$ <span class="pull-right" total>
-                    @(Model.Total)
+                    @(Model.Sum(p => p.PrecoUnitario * p.Quantidade))
                 </span>
             </div>
         </div>
@@ -87,8 +105,8 @@
             <a class="btn btn-success" asp-action="carrossel">
                 Adicionar Produtos
             </a>
-            <a class="btn btn-success" asp-action="cadastro">
-                Preencher Cadastro
+            <a class="btn btn-success" asp-action="resumo">
+                Finalizar Compra
             </a>
         </div>
     </div>

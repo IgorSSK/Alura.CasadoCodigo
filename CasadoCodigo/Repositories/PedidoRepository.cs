@@ -1,4 +1,6 @@
-﻿using CasaDoCodigo.Models;
+﻿using CasadoCodigo.Models;
+using CasadoCodigo.Models.ViewModel;
+using CasaDoCodigo.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
@@ -14,20 +16,23 @@ namespace CasadoCodigo.Repositories
     {
         Pedido GetPedido();
         void AddItem(string codigo);
+        UpdateQuantidadeResponse UpdateQuantidade(ItemPedido itemPedido);
     }
     public class PedidoRepository : BaseRepository<Pedido>, IPedidoRepository
     {
         private readonly IHttpContextAccessor contextAccessor;
-        public PedidoRepository(ApplicationContext context, IHttpContextAccessor contextAccessor) : base(context)
+        private readonly IItemPedidoRepository itemPedidoRepository;
+        public PedidoRepository(ApplicationContext context, IHttpContextAccessor contextAccessor, IItemPedidoRepository itemPedidoRepository) : base(context)
         {
             this.contextAccessor = contextAccessor;
+            this.itemPedidoRepository = itemPedidoRepository;
         }
 
         public void AddItem(string codigo)
         {
             var produto = context.Set<Produto>().Where(p => p.Codigo == codigo).SingleOrDefault();
 
-            if(produto == null)
+            if (produto == null)
             {
                 throw new ArgumentException("Produto não encontrado!");
             }
@@ -61,6 +66,28 @@ namespace CasadoCodigo.Repositories
             }
 
             return pedido;
+        }
+
+        public UpdateQuantidadeResponse UpdateQuantidade(ItemPedido itemPedido)
+        {
+            var itemPedidoDB = itemPedidoRepository.GetItemPedido(itemPedido.Id);
+
+
+            if (itemPedidoDB != null)
+            {
+                itemPedidoDB.AtualizaQuantidade(itemPedido.Quantidade);
+
+                if (itemPedido.Quantidade == 0)
+                {
+                    itemPedidoRepository.RemoveItemPedido(itemPedido.Id);
+                }
+
+                context.SaveChanges();
+
+                var carrinhoViewModel = new CarrinhoViewModel(GetPedido().Itens);
+                return new UpdateQuantidadeResponse(itemPedidoDB, carrinhoViewModel);
+                }
+            throw new ArgumentException("ItemPedido não encontrado");
         }
 
         private int? GetPedidoId()
