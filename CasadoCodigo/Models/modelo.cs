@@ -62,6 +62,18 @@ namespace CasaDoCodigo.Models
         [Required]
         public string CEP { get; set; } = "";
 
+        internal void Update(Cadastro novoCadastro)
+        {
+            this.Bairro = novoCadastro.Bairro;
+            this.Nome = novoCadastro.Nome;
+            this.Email = novoCadastro.Email;
+            this.Telefone = novoCadastro.Telefone;
+            this.Endereco = novoCadastro.Endereco;
+            this.Complemento = novoCadastro.Complemento;
+            this.Municipio = novoCadastro.Municipio;
+            this.UF = novoCadastro.UF;
+            this.CEP = novoCadastro.CEP;
+        }
     }
 
     [DataContract]

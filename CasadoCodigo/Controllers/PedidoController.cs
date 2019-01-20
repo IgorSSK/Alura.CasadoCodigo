@@ -52,13 +52,19 @@ namespace CasadoCodigo.Controllers
             return View(carrinhoViewModel);
         }
 
+        [AutoValidateAntiforgeryToken]
         [HttpPost]
         public IActionResult Resumo(Cadastro cadastro)
         {
-            var pedido = pedidoRepository.GetPedido();
-            return View(pedido);
+            if (ModelState.IsValid)
+            {
+                return View(pedidoRepository.UpdateCadastro(cadastro));
+            }
+            return RedirectToAction("Cadastro");
+            
         }
 
+        [AutoValidateAntiforgeryToken]
         [HttpPost]
         public UpdateQuantidadeResponse UpdateQuantidade([FromBody] ItemPedido itemPedido)
         {
